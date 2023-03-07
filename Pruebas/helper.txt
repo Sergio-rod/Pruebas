@@ -1,3 +1,6 @@
+Tengo 4 clases de codigo en php, son para testear en phpunit, ¿Puedes decirme que hace cada linea?, en terminos simples
+
+
 <?php
 
 class Bill{
@@ -18,6 +21,8 @@ class Bill{
 }
 
 ?>
+
+
 <?php
 
 use mysqli;
@@ -57,6 +62,8 @@ class InvoiceDao{
 
 ?>
 
+
+
 <?php
 namespace App;
 
@@ -74,7 +81,7 @@ class InvoiceFilter {
         $filtered = [];
         foreach ($all as $inv) {
             echo "ID: " . $inv->getId() . "\tMonto: " . $inv->getAmount() . "\n";
-            if ($inv->getAmount() < 100.0)
+            if ($inv->getAmount() < 250.0)
                 array_push($filtered, new Bill($inv->getId(), $inv->getAmount()));
         }
         
@@ -85,34 +92,40 @@ class InvoiceFilter {
 ?>
 
 
+
+
 <?php
 namespace App\Test;
 
-use App\InvoiceDao;
 use App\InvoiceFilter;
 use Bill;
+use InvoiceDao;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceFilterTest extends TestCase {
     public function testFiltrarFacturas() {
         // $dao = new InvoiceDao();
 
+
+        $dao = new InvoiceDao();
+
         $i1 = new Bill("M", 200.0);
         $i2 = new Bill("A", 300.0);
         $list = [$i1, $i2]; 
 
-        // $dao->save($i1);
-        // $dao->save($i2);
-        $dao = $this->getMockBuilder(InvoiceDao::class)->onlyMethods(['all'])->getMock();
+        $dao->save($i1);
+        $dao->save($i2);
+        // $dao = $this->getMockBuilder(InvoiceDao::class)->onlyMethods(['all'])->getMock();
 
-        $dao->expects($this->once())->method('all')->will($this->returnValue($list));
+        //$dao->expects($this->once())->method('all')->will($this->returnValue($list));
 
         $f = new InvoiceFilter($dao);
         $result = $f->filter();
         
         $this->assertEquals(1, sizeof($result));
         $this->assertEquals($i1, $result[0]);
-        // $dao->close();
+        $dao->close();
     }  
  }
 ?>
+

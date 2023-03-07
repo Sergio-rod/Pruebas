@@ -1,13 +1,16 @@
 <?php
 namespace App\Test;
 
-use App\InvoiceDao;
 use App\InvoiceFilter;
 use Bill;
+use InvoiceDao;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceFilterTest extends TestCase {
     public function testFiltrarFacturas() {
+        // $dao = new InvoiceDao();
+
+
         $dao = new InvoiceDao();
 
         $i1 = new Bill("M", 200.0);

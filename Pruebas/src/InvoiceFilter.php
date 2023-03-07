@@ -15,7 +15,7 @@ class InvoiceFilter {
         $filtered = [];
         foreach ($all as $inv) {
             echo "ID: " . $inv->getId() . "\tMonto: " . $inv->getAmount() . "\n";
-            if ($inv->getAmount() < 100.0)
+            if ($inv->getAmount() < 250.0)
                 array_push($filtered, new Bill($inv->getId(), $inv->getAmount()));
         }
         
