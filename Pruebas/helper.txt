@@ -1,0 +1,118 @@
+<?php
+
+class Bill{
+    private $id = "";
+    private $amount = 0.0;
+
+    function __construct($id,$amount){
+        $this->id = $id;
+        $this->amount = $amount;
+
+    }
+    public function getId(){
+        return $this->id;
+    }
+    public function getAmount(){
+        return $this->amount;
+    }
+}
+
+?>
+<?php
+
+use mysqli;
+class InvoiceDao{
+    private $user;
+    private $pass;
+    private $db;
+    private $server;
+    private $conn;
+
+    function __construct(){
+        $this->user='root';
+        $this->pass='';
+        $this->db='invoice';
+        $this->server='localhost';
+        $this->conn= new mysqli($this->server,$this->user,$this->pass,$this->db);
+    }
+
+    public function all(){
+        $data = [];
+        $result = $this->conn->query("SELECT * FROM invoice");
+        while($row = mysqli_fetch_array($result)){
+            array_push($data, new Bill($row['id'],$row['amount']));
+        }
+        return  $data;
+    }
+
+    public function save($invoice){
+        $this->conn->query("INSERT  INTO invoice(id, amount) VALUES('{$invoice->getId()}','{$invoice->getAmount()}')");
+    }
+
+    public function close(){
+        $this->conn->close();
+    }
+
+}
+
+?>
+
+<?php
+namespace App;
+
+use Bill;
+
+class InvoiceFilter {
+    private $dao;
+
+    function __construct($dao) {
+        $this->dao = $dao;
+    }
+    
+    public function filter() {
+        $all = $this->dao->all();
+        $filtered = [];
+        foreach ($all as $inv) {
+            echo "ID: " . $inv->getId() . "\tMonto: " . $inv->getAmount() . "\n";
+            if ($inv->getAmount() < 100.0)
+                array_push($filtered, new Bill($inv->getId(), $inv->getAmount()));
+        }
+        
+        return $filtered;
+    }
+ }
+ 
+?>
+
+
+<?php
+namespace App\Test;
+
+use App\InvoiceDao;
+use App\InvoiceFilter;
+use Bill;
+use PHPUnit\Framework\TestCase;
+
+class InvoiceFilterTest extends TestCase {
+    public function testFiltrarFacturas() {
+        // $dao = new InvoiceDao();
+
+        $i1 = new Bill("M", 200.0);
+        $i2 = new Bill("A", 300.0);
+        $list = [$i1, $i2]; 
+
+        // $dao->save($i1);
+        // $dao->save($i2);
+        $dao = $this->getMockBuilder(InvoiceDao::class)->onlyMethods(['all'])->getMock();
+
+        $dao->expects($this->once())->method('all')->will($this->returnValue($list));
+
+        $f = new InvoiceFilter($dao);
+        $result = $f->filter();
+        
+        $this->assertEquals(1, sizeof($result));
+        $this->assertEquals($i1, $result[0]);
+        // $dao->close();
+    }  
+ }
+?>
