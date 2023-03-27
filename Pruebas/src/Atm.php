@@ -1,59 +1,66 @@
 <?php
 namespace App;
+use Connection;
+include('Connection.php');
 
 class Atm {
 
+    private $conn;
+
+    function __construct(){
+        $connect = new Connection();
+        $this->conn = $connect->getConn();
+    }
+
+
     function loginUser($cardNum,$pin){
-        if($cardNum=="aqui ba la consulta de usuario" && $pin=="aqui va la consulta de pin"){
-            echo "Bienvenido {$cardNum}";
-            return True;
+        $query = $this->conn->prepare("SELECT * FROM client WHERE cardNumber = ? AND pin = ?");
+        $query->bind_param("ss", $cardNum, $pin);
+        $query->execute();
+        $result = $query->get_result();
+        
+
+        if($result->num_rows >0 ){
+
+            $this->Menu($result);
         }
-        else {
-            echo "Pin incorrecto";
+        else{
+            echo "Pin incorreto";
             return False;
         }
     }
 
-    function Menu($banner){
-        if ($banner){
+    function Menu($result){
+        $row = $result->fetch_array();
+        $name = $row["name"];
+        echo "Bienvenido, $name";  
+        $banner = True;
 
-            $aux = True;
+        while($banner){
 
-            while($aux){
+            echo "Ingresa una opción: 1,2,3 ";
+            $option = fgets(STDIN); // lee la entrada del usuario
+            $option = intval($option); // convierte la entrada en un entero
 
-                echo "-----------Bienvenido-al-sistema-de-banco----------";
-                echo "Ingresa una opción: 1,2,3 ";
-                $option = fgets(STDIN); // lee la entrada del usuario
-                $option = intval($option); // convierte la entrada en un entero
+            switch ($option) {
+                case 1:
+                    $amount = fgets(STDIN);
+                    $amount = INTVAL($amount);
+                    $this->WithDraw($amount);
 
-                switch ($option) {
-                    case 1:
-
-                        $amount = fgets(STDIN);
-                        $amount = INTVAL($amount);
-                        $this->WithDraw($amount);
-
-                        break;
-                    case 2:
-
-                        break;
-                    case 3:
-
-                        break;
-                    case 4:
-
-                        $aux = False;
-                        break;
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    $aux = False;
+                    break;
 
 
             } 
         }
      
-    }else {
-        echo "Ocurrió un error";
-
-        }
-
     }
 
     function WithDraw($amount){
