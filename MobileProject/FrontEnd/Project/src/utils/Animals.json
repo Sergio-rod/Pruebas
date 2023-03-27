@@ -1,0 +1,26 @@
+[
+    {
+        "id": "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
+        "fullName": "Jumping spider",
+        "recentText": "Good Day!",
+        "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flickr_-_Lukjonis_-_Jumping_spider_-_Sitticus_floricola_%28set_of_pictures%29.jpg/270px-Flickr_-_Lukjonis_-_Jumping_spider_-_Sitticus_floricola_%28set_of_pictures%29.jpg"
+    },
+    {
+        "id": "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
+        "fullName": "Blue whale",
+        "recentText": "Cheer up, there!",
+        "avatarUrl": "http://c.files.bbci.co.uk/653B/production/_95151952_mediaitem95151800.jpg"
+    },
+    {
+        "id": "58694a0f-3da1-471f-bd96-145571e29d72",
+        "fullName": "Sheep",
+        "recentText": "Good Day!",
+        "avatarUrl": "https://static.wixstatic.com/media/1fbba5_6b71dec10686420cab768d8476ebb965~mv2.jpg/v1/fill/w_560,h_378,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/1fbba5_6b71dec10686420cab768d8476ebb965~mv2.jpg"
+    },
+    {
+        "id": "68694a0f-3da1-431f-bd56-142371e29d72",
+        "fullName": "Raven",
+        "recentText": "All the best",
+        "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/3/30/Corvus_corax.001_-_Tower_of_London.JPG"
+    }
+]
