@@ -1,126 +1,207 @@
 <?php
+
 namespace App;
+
 use Connection;
+use Exception;
+
 include('Connection.php');
 
-class Atm {
-
+class Atm
+{
     private $conn;
 
-    function __construct(){
-        $connect = new Connection();
-        $this->conn = $connect->getConn();
-    }
-
-
-    function loginUser($cardNum,$pin){
-        $query = $this->conn->prepare("SELECT * FROM client WHERE cardNumber = ? AND pin = ?");
-        $query->bind_param("ss", $cardNum, $pin);
-        $query->execute();
-        $result = $query->get_result();
-        
-
-        if($result->num_rows >0 ){
-
-
-            $this->Menu($result);
-        }
-        else{
-            echo "Pin incorreto";
-            return False;
+    public function __construct()
+    {
+        try {
+            $connect = new Connection();
+            $this->conn = $connect->getConn();
+        } catch (Exception $e) {
+            echo "Error de conexion";
         }
     }
 
 
-    function GetJson($result){
-        $row = $result->fetch_assoc();
-        $json = json_encode($row);
-        return $json;
+    public function loginUser($cardNum, $pin)
+    {
+        try {
+            $query = $this->conn->prepare("SELECT * FROM client WHERE cardNum = ? AND pin = ?");
+            $query->bind_param("ss", $cardNum, $pin);
+            $query->execute();
+            $result = $query->get_result();
 
+
+            if ($result->num_rows > 0) {
+                $this->Menu($result);
+            } else {
+                echo "Pin incorreto";
+                return false;
+            }
+        } catch (Exception $e) {
+            echo "Error, $e";
+        }
     }
 
-    function GetObject($json){
-        $obj = json_decode($json);
-        return $obj;
+    public function GetJson($result)
+    {
+        try {
+            $row = $result->fetch_assoc();
+            $json = json_encode($row);
+            return $json;
+        } catch (Exception $e) {
+            echo "No se pudo obtener el json, $e";
+        }
+    }
+
+    public function GetObject($json)
+    {
+        try {
+            $obj = json_decode($json);
+            return $obj;
+        } catch (Exception $e) {
+            echo "No se pudo obtener el objeto PHP, $e";
+        }
     }
 
 
 
 
-    function Menu($result){
+    public function Menu($result)
+    {
         $json = $this->GetJson($result);
         $obj = $this->GetObject($json);
 
         $name = $obj->name;
 
-        echo "Bienvenido, $name";  
-        $banner = True;
+        echo "Bienvenido , $name";
+        $banner = true;
 
-        while($banner){
-
-            echo "Ingresa una opción: 1,2,3 ";
-            $option = fgets(STDIN); // lee la entrada del usuario
-
-            // $optionInt = intval($option);
-            switch ($option) {
-                case '1':
-                    $amount = fgets(STDIN);
-                    $amount = INTVAL($amount);
-                    $this->WithDraw($amount);
-
-                    break;
-                case '2':
-                    break;
-                case '3':
-                    break;
-                case '4':
-                    $banner = False;
-                    break;
+        try {
+            while ($banner) {
+                echo "Ingresa una opción:";
+                echo "1) Retiro";
+                echo "2) Revisar balance";
+                echo "3) Depositar a otra tarjeta";
+                echo "4) Salir";
 
 
-            } 
-        }
-     
-    }
+                $option = fgets(STDIN); // lee la entrada del usuario
 
-    function WithDraw($amount){
+                // $optionInt = intval($option);
+                switch ($option) {
+                    case '1': //Retiro
+                        $this->WithDraw($obj);
 
-        if($amount<="consulta a la base de datos"){
-            $sql = "consulta para editar la base de datos y reducir el monto";
-            echo "El retiro se hizo exitosamente";
-            return $amount;
-        }
-        if($amount>"consulta a la base de datos"){
-            echo "No tienes suficientes fondos en tu cuenta";
-            return 0;
-        }
-        else{
-            echo "Ingresa solo carácteres númericos";
-            return null;
-        }
+                        break;
+                    case '2': //Revisar balance
+                        $this->CheckBalance($obj);
 
-    }
-
-    function CheckBalance($cardNum){
-        if ($cardNum!=null && $cardNum!= 0){
-            $sqlSalt = "consulta sql";
-            echo "Tu saldo es: {$sqlSalt} ";
-            return $sqlSalt;
-        }
-        else{
-            echo "Ocurrió un error inesperado";
-        }
-
-    }
-
-    function Deposit($cardNum,$cardNumDeposit,$amount){
-        if ($amount<="consulta a la base de datos"){
-            
-
-
+                        break;
+                    case '3':
+                        $this->Deposit($obj);
+                        break;
+                    case '4':
+                        $this->conn->close();
+                        $banner = false;
+                        break;
+                }
+            }
+        } catch (Exception $e) {
+            echo "Ingresa una opción valida, $e";
         }
     }
 
+    public function WithDraw($obj)
+    {
+        try {
+            $balance = $obj->balance;
+            echo "¿Cuanto deseas retirar?";
+            $amount = intval(fgets(STDIN)); // lee la entrada del usuario
+            if ($amount % 100 == 0 && $amount > 0) {
+                if ($amount <= $balance) {
+                    $balance -= $amount;
+                    echo "Has retirado, $ $amount pesos";
+                    echo "Nuevo saldo $balance";
+
+                    //nuevo saldo
+                    $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
+                    $query->bind_param("ds", $balance, $obj->cardNum);
+                    $query->execute();
+                } else {
+                    echo "Fondos insuficientes";
+                }
+            } else {
+                echo "Solo puedes ingresar multiplos de 100";
+            }
+        } catch (Exception $e) {
+            echo "Algo fue mal, $e";
+        }
+    }
+
+    public function CheckBalance($obj)
+    {
+        $cardNum = $obj->cardNum;
+        if ($cardNum != null && $cardNum != 0) {
+            $query = $this->conn->prepare("Select balance from client WHERE cardNum = ?");
+            $query->bind_param("n", $cardNum);
+            $query->execute();
+            $result = $query->get_result();
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $balance = $row["balance"];
+                echo "Tu saldo actual es: $balance pesos";
+            } else {
+                echo "Ocurrió un error inesperado";
+            }
+        }
+    }
+
+    public function Deposit($obj)
+    {
+        $balance = $obj->balance;
+        echo "Ingresa el monto que deseas depositar";
+        $amount = intval(fgets(STDIN));
+        echo "Ingresa la tarjeta a la que deseas depositar";
+        $depositCard = fgets(STDIN);
+
+
+        if ($amount <= $balance && $amount != 0) { //Revisa que el monto sea adecuado
+            $query = $this->conn->prepare("Select * from client WHERE cardNum = ?");
+            $query->bind_param("n", $depositCard);
+            $query->execute();
+            $result = $query->get_result();
+
+            //revisa si hay resultados
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $thirdBalance = $row["balance"];
+                $thirdBalance += $amount;
+
+                //si los hay interactua y añade el dinero a la cuneta del tercero
+
+                $balance -= $amount;
+                $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNumb = ?");
+                $query->bind_param("ds", $thirdBalance, $depositCard);
+                $query->execute();
+                //y modifica el saldo del cliente
+
+                $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
+                $query->bind_param("ds", $balance, $obj->cardNum);
+                $query->execute();
+            } else {
+                echo "Ocurrió un error inesperado";
+            }
+        }
+
+    }
 
 
 }
+
+?>
+
+<?php
+  $atm = new Atm();
+  $atm->loginUser("123456789","1234");
+
+?>

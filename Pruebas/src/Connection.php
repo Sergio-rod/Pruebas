@@ -10,7 +10,7 @@
         function __construct(){
             $this->user='root';
             $this->pass='';
-            $this->db='invoice';
+            $this->db='test';
             $this->server='localhost';
             $this->conn= new mysqli($this->server,$this->user,$this->pass,$this->db);
         }
