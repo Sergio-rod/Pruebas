@@ -22,6 +22,7 @@ class Atm {
 
         if($result->num_rows >0 ){
 
+
             $this->Menu($result);
         }
         else{
@@ -30,9 +31,28 @@ class Atm {
         }
     }
 
+
+    function GetJson($result){
+        $row = $result->fetch_assoc();
+        $json = json_encode($row);
+        return $json;
+
+    }
+
+    function GetObject($json){
+        $obj = json_decode($json);
+        return $obj;
+    }
+
+
+
+
     function Menu($result){
-        $row = $result->fetch_array();
-        $name = $row["name"];
+        $json = $this->GetJson($result);
+        $obj = $this->GetObject($json);
+
+        $name = $obj->name;
+
         echo "Bienvenido, $name";  
         $banner = True;
 
@@ -40,21 +60,21 @@ class Atm {
 
             echo "Ingresa una opción: 1,2,3 ";
             $option = fgets(STDIN); // lee la entrada del usuario
-            $option = intval($option); // convierte la entrada en un entero
 
+            // $optionInt = intval($option);
             switch ($option) {
-                case 1:
+                case '1':
                     $amount = fgets(STDIN);
                     $amount = INTVAL($amount);
                     $this->WithDraw($amount);
 
                     break;
-                case 2:
+                case '2':
                     break;
-                case 3:
+                case '3':
                     break;
-                case 4:
-                    $aux = False;
+                case '4':
+                    $banner = False;
                     break;
 
 
