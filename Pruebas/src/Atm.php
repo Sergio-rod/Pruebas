@@ -73,16 +73,16 @@ class Atm
 
         $name = $obj->name;
 
-        echo "Bienvenido , $name";
+        echo "Bienvenido , $name ";
         $banner = true;
 
         try {
             while ($banner) {
-                echo "Ingresa una opción:";
-                echo "1) Retiro";
-                echo "2) Revisar balance";
-                echo "3) Depositar a otra tarjeta";
-                echo "4) Salir";
+                echo "Ingresa una opción :";
+                echo "1) Retiro ";
+                echo "2) Revisar balance ";
+                echo "3) Depositar a otra tarjeta ";
+                echo "4) Salir ";
 
 
                 $option = fgets(STDIN); // lee la entrada del usuario
@@ -107,7 +107,7 @@ class Atm
                 }
             }
         } catch (Exception $e) {
-            echo "Ingresa una opción valida, $e";
+            echo "Ingresa una opción valida, $e ";
         }
     }
 
@@ -115,23 +115,23 @@ class Atm
     {
         try {
             $balance = $obj->balance;
-            echo "¿Cuanto deseas retirar?";
+            echo "¿Cuanto deseas retirar? ";
             $amount = intval(fgets(STDIN)); // lee la entrada del usuario
             if ($amount % 100 == 0 && $amount > 0) {
                 if ($amount <= $balance) {
                     $balance -= $amount;
-                    echo "Has retirado, $ $amount pesos";
-                    echo "Nuevo saldo $balance";
+                    echo "Has retirado, $ $amount pesos ";
+                    echo "Nuevo saldo $balance ";
 
                     //nuevo saldo
                     $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
                     $query->bind_param("ds", $balance, $obj->cardNum);
                     $query->execute();
                 } else {
-                    echo "Fondos insuficientes";
+                    echo "Fondos insuficientes ";
                 }
             } else {
-                echo "Solo puedes ingresar multiplos de 100";
+                echo "Solo puedes ingresar multiplos de 100 ";
             }
         } catch (Exception $e) {
             echo "Algo fue mal, $e";
@@ -140,68 +140,76 @@ class Atm
 
     public function CheckBalance($obj)
     {
-        $cardNum = $obj->cardNum;
-        if ($cardNum != null && $cardNum != 0) {
-            $query = $this->conn->prepare("Select balance from client WHERE cardNum = ?");
-            $query->bind_param("n", $cardNum);
-            $query->execute();
-            $result = $query->get_result();
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $balance = $row["balance"];
-                echo "Tu saldo actual es: $balance pesos";
-            } else {
-                echo "Ocurrió un error inesperado";
-            }
-        }
+        echo "Tu saldo es de: $obj->balance";
+
+        // if ($cardNum != null && $cardNum != 0) {
+        //     $query = $this->conn->prepare("Select balance from client WHERE cardNum = ?");
+        //     $query->bind_param("b", $cardNum);
+        //     $query->execute();
+        //     $result = $query->get_result();
+        //     if ($result->num_rows > 0) {
+        //         $row = $result->fetch_assoc();
+        //         $balance = $row["balance"];
+        //         echo "Tu saldo actual es:  $balance pesos ";
+        //     } else {
+        //         echo "Ocurrió un error inesperado ";
+        //     }
+        // }
     }
 
     public function Deposit($obj)
     {
         $balance = $obj->balance;
-        echo "Ingresa el monto que deseas depositar";
+        echo "Ingresa el monto que deseas depositar ";
         $amount = intval(fgets(STDIN));
-        echo "Ingresa la tarjeta a la que deseas depositar";
-        $depositCard = fgets(STDIN);
+        echo "Ingresa la tarjeta a la que deseas depositar ";
+        $depositCard = "987654321";
 
 
-        if ($amount <= $balance && $amount != 0) { //Revisa que el monto sea adecuado
-            $query = $this->conn->prepare("Select * from client WHERE cardNum = ?");
-            $query->bind_param("n", $depositCard);
+        if ($amount <= $balance && $amount > 0) { //Revisa que el monto sea adecuado
+            $query = $this->conn->prepare("SELECT * FROM client WHERE cardNum = ?");
+            $query->bind_param("s", $depositCard);
             $query->execute();
             $result = $query->get_result();
 
+
             //revisa si hay resultados
             if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $thirdBalance = $row["balance"];
-                $thirdBalance += $amount;
+                try {
+                    $row = $result->fetch_assoc();
 
-                //si los hay interactua y añade el dinero a la cuneta del tercero
+                    $thirdBalance = $row["balance"];
+                    $thirdBalance += $amount;
 
-                $balance -= $amount;
-                $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNumb = ?");
-                $query->bind_param("ds", $thirdBalance, $depositCard);
-                $query->execute();
-                //y modifica el saldo del cliente
+                    //si los hay interactua y añade el dinero a la cuneta del tercero
 
-                $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
-                $query->bind_param("ds", $balance, $obj->cardNum);
-                $query->execute();
+                    $balance -= $amount;
+                    $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
+                    $query->bind_param("ds", $thirdBalance, $depositCard);
+                    $query->execute();
+                    //y modifica el saldo del cliente
+
+                    $query = $this->conn->prepare("UPDATE client SET balance = ? WHERE cardNum = ?");
+                    $query->bind_param("ds", $balance, $obj->cardNum);
+                    $query->execute();
+
+                    echo "Deposito exitoso ";
+                } catch (Exception $e) {
+                    echo "No se pudo hacer la consulta, error $e";
+                }
             } else {
-                echo "Ocurrió un error inesperado";
+                echo "No se encontró ninguna cuenta con ese número de tarjeta ";
             }
+        }else{
+            echo "No tienes saldo suficiente";
         }
-
     }
-
-
 }
 
 ?>
 
 <?php
-  $atm = new Atm();
-  $atm->loginUser("123456789","1234");
+$atm = new Atm();
+$atm->loginUser("123456789", "1234");
 
 ?>
